@@ -70,7 +70,51 @@ img {
 </div>
 
 
+<pre class="r"><code># Quantitative features for non-aggregate observations
+cols &lt;- c(&quot;roll_belt&quot;,&quot;pitch_belt&quot;,&quot;yaw_belt&quot;,&quot;total_accel_belt&quot;,&quot;gyros_belt_x&quot;,&quot;gyros_belt_y&quot;,&quot;gyros_belt_z&quot;,&quot;accel_belt_x&quot;,&quot;accel_belt_y&quot;,&quot;accel_belt_z&quot;,&quot;magnet_belt_x&quot;,&quot;magnet_belt_y&quot;,&quot;magnet_belt_z&quot;,&quot;roll_arm&quot;,&quot;pitch_arm&quot;,&quot;yaw_arm&quot;,&quot;total_accel_arm&quot;,&quot;gyros_arm_x&quot;,&quot;gyros_arm_y&quot;,&quot;gyros_arm_z&quot;,&quot;accel_arm_x&quot;,&quot;accel_arm_y&quot;,&quot;accel_arm_z&quot;,&quot;magnet_arm_x&quot;,&quot;magnet_arm_y&quot;,&quot;magnet_arm_z&quot;,&quot;roll_dumbbell&quot;,&quot;pitch_dumbbell&quot;,&quot;yaw_dumbbell&quot;,&quot;total_accel_dumbbell&quot;,&quot;gyros_dumbbell_x&quot;,&quot;gyros_dumbbell_y&quot;,&quot;gyros_dumbbell_z&quot;,&quot;accel_dumbbell_x&quot;,&quot;accel_dumbbell_y&quot;,&quot;accel_dumbbell_z&quot;,&quot;magnet_dumbbell_x&quot;,&quot;magnet_dumbbell_y&quot;,&quot;magnet_dumbbell_z&quot;,&quot;roll_forearm&quot;,&quot;pitch_forearm&quot;,&quot;yaw_forearm&quot;,&quot;total_accel_forearm&quot;,&quot;gyros_forearm_x&quot;,&quot;gyros_forearm_y&quot;,&quot;gyros_forearm_z&quot;,&quot;accel_forearm_x&quot;,&quot;accel_forearm_y&quot;,&quot;accel_forearm_z&quot;,&quot;magnet_forearm_x&quot;,&quot;magnet_forearm_y&quot;,&quot;magnet_forearm_z&quot;)
 
+# training data
+har.train &lt;- read.csv(&quot;data/pml-training.csv&quot;, header=T)
+# select only the measurement records, not the aggregates
+har.train &lt;- har.train[which(har.train$new_window==&quot;no&quot;),]
+# select only the quantitative features for non-aggregate obs
+har.train &lt;- har.train[,c(cols,&quot;classe&quot;)]
+rownames(har.train) &lt;- NULL
+
+#training data
+har.test &lt;- read.csv(&quot;data/pml-testing.csv&quot;, header=T)
+har.test &lt;- har.test[,c(cols,&quot;problem_id&quot;)]
+rownames(har.test) &lt;- NULL</code></pre>
+<pre class="r"><code># Code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
+require(doParallel)
+data(iris)
+set.seed(4747)
+num_repeats &lt;- 1
+k &lt;- 10
+mtry &lt;- ncol(har.train) - 2
+seeds &lt;- vector(mode=&quot;list&quot;, length=(num_repeats * k) + 1)
+for(i in 1:10) seeds[[i]] &lt;- sample.int(1000, mtry)
+
+seeds[[11]] &lt;- sample.int(1000, 1)
+
+myControl &lt;- trainControl(method=&quot;cv&quot;, seeds=seeds, index=createFolds(har.train$classe, k=k))
+
+cl &lt;- makeCluster(detectCores() - 1)
+registerDoParallel(cl)
+fit &lt;- train(classe ~ ., har.train, method=&quot;rf&quot;, trControl=myControl)
+# rf.fit &lt;- rfcv(har.train[,-which(names(har.train)==&quot;class&quot;)], har.train[,&quot;classe&quot;], cv.fold=k, trControl(myControl))
+stopCluster(cl)</code></pre>
+<pre class="r"><code>har.test$pred.classe &lt;- predict(fit, har.test)
+
+pml_write_files &lt;- function(x) {
+    n &lt;- length(x)
+    for(i in 1:n) {
+        filename &lt;- paste0(&quot;data/problem_id_&quot;,i,&quot;.txt&quot;)
+        write.table(x[i], file=filename, quote=F, row.names=F, col.names=F)
+    }
+}
+
+pml_write_files(as.character(har.test$pred.classe))</code></pre>
 
 
 </div>
