@@ -8,6 +8,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
+<meta name="author" content="Matt Altieri" />
 
 
 <title>PML Project</title>
@@ -67,27 +68,24 @@ img {
 
 <div id="header">
 <h1 class="title">PML Project</h1>
+<h4 class="author"><em>Matt Altieri</em></h4>
 </div>
 
 
-<pre class="r"><code># Quantitative features for non-aggregate observations
-cols &lt;- c(&quot;roll_belt&quot;,&quot;pitch_belt&quot;,&quot;yaw_belt&quot;,&quot;total_accel_belt&quot;,&quot;gyros_belt_x&quot;,&quot;gyros_belt_y&quot;,&quot;gyros_belt_z&quot;,&quot;accel_belt_x&quot;,&quot;accel_belt_y&quot;,&quot;accel_belt_z&quot;,&quot;magnet_belt_x&quot;,&quot;magnet_belt_y&quot;,&quot;magnet_belt_z&quot;,&quot;roll_arm&quot;,&quot;pitch_arm&quot;,&quot;yaw_arm&quot;,&quot;total_accel_arm&quot;,&quot;gyros_arm_x&quot;,&quot;gyros_arm_y&quot;,&quot;gyros_arm_z&quot;,&quot;accel_arm_x&quot;,&quot;accel_arm_y&quot;,&quot;accel_arm_z&quot;,&quot;magnet_arm_x&quot;,&quot;magnet_arm_y&quot;,&quot;magnet_arm_z&quot;,&quot;roll_dumbbell&quot;,&quot;pitch_dumbbell&quot;,&quot;yaw_dumbbell&quot;,&quot;total_accel_dumbbell&quot;,&quot;gyros_dumbbell_x&quot;,&quot;gyros_dumbbell_y&quot;,&quot;gyros_dumbbell_z&quot;,&quot;accel_dumbbell_x&quot;,&quot;accel_dumbbell_y&quot;,&quot;accel_dumbbell_z&quot;,&quot;magnet_dumbbell_x&quot;,&quot;magnet_dumbbell_y&quot;,&quot;magnet_dumbbell_z&quot;,&quot;roll_forearm&quot;,&quot;pitch_forearm&quot;,&quot;yaw_forearm&quot;,&quot;total_accel_forearm&quot;,&quot;gyros_forearm_x&quot;,&quot;gyros_forearm_y&quot;,&quot;gyros_forearm_z&quot;,&quot;accel_forearm_x&quot;,&quot;accel_forearm_y&quot;,&quot;accel_forearm_z&quot;,&quot;magnet_forearm_x&quot;,&quot;magnet_forearm_y&quot;,&quot;magnet_forearm_z&quot;)
-
-# training data
+<pre class="r"><code># training data
 har.train &lt;- read.csv(&quot;data/pml-training.csv&quot;, header=T)
 # select only the measurement records, not the aggregates
 har.train &lt;- har.train[which(har.train$new_window==&quot;no&quot;),]
 # select only the quantitative features for non-aggregate obs
-har.train &lt;- har.train[,c(cols,&quot;classe&quot;)]
+har.train &lt;- har.train[,c(features,&quot;classe&quot;)]
 rownames(har.train) &lt;- NULL
 
-#training data
+# test data
 har.test &lt;- read.csv(&quot;data/pml-testing.csv&quot;, header=T)
-har.test &lt;- har.test[,c(cols,&quot;problem_id&quot;)]
+har.test &lt;- har.test[,c(features,&quot;problem_id&quot;)]
 rownames(har.test) &lt;- NULL</code></pre>
 <pre class="r"><code># Code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
 require(doParallel)
-data(iris)
 set.seed(4747)
 num_repeats &lt;- 1
 k &lt;- 10 # Number of folds for k-fold cross-validation
@@ -112,16 +110,16 @@ Call:
  randomForest(x = x, y = y, mtry = param$mtry) 
                Type of random forest: classification
                      Number of trees: 500
-No. of variables tried at each split: 27
+No. of variables tried at each split: 2
 
-        OOB estimate of  error rate: 0.43%
+        OOB estimate of  error rate: 0.41%
 Confusion matrix:
      A    B    C    D    E  class.error
-A 5466    3    1    0    1 0.0009139097
-B   19 3694    5    0    0 0.0064550834
-C    0   11 3330   11    0 0.0065632458
-D    0    0   20 3125    2 0.0069907849
-E    0    1    5    4 3518 0.0028344671</code></pre>
+A 5468    3    0    0    0 0.0005483458
+B    8 3706    4    0    0 0.0032275417
+C    0   19 3330    3    0 0.0065632458
+D    0    0   37 3109    1 0.0120749921
+E    0    0    0    4 3524 0.0011337868</code></pre>
 <pre class="r"><code>har.test$pred.classe &lt;- predict(fit, har.test)
 
 pml_write_files &lt;- function(x) {
@@ -133,6 +131,65 @@ pml_write_files &lt;- function(x) {
 }
 
 pml_write_files(as.character(har.test$pred.classe))</code></pre>
+<p></p>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<pre class="r"><code>kable(data.frame(features=features))</code></pre>
+</div>
+<div id="features" class="section level2">
+<h2>features</h2>
+<p>roll_belt<br />
+pitch_belt<br />
+yaw_belt<br />
+total_accel_belt<br />
+gyros_belt_x<br />
+gyros_belt_y<br />
+gyros_belt_z<br />
+accel_belt_x<br />
+accel_belt_y<br />
+accel_belt_z<br />
+magnet_belt_x<br />
+magnet_belt_y<br />
+magnet_belt_z<br />
+roll_arm<br />
+pitch_arm<br />
+yaw_arm<br />
+total_accel_arm<br />
+gyros_arm_x<br />
+gyros_arm_y<br />
+gyros_arm_z<br />
+accel_arm_x<br />
+accel_arm_y<br />
+accel_arm_z<br />
+magnet_arm_x<br />
+magnet_arm_y<br />
+magnet_arm_z<br />
+roll_dumbbell<br />
+pitch_dumbbell<br />
+yaw_dumbbell<br />
+total_accel_dumbbell gyros_dumbbell_x<br />
+gyros_dumbbell_y<br />
+gyros_dumbbell_z<br />
+accel_dumbbell_x<br />
+accel_dumbbell_y<br />
+accel_dumbbell_z<br />
+magnet_dumbbell_x<br />
+magnet_dumbbell_y<br />
+magnet_dumbbell_z<br />
+roll_forearm<br />
+pitch_forearm<br />
+yaw_forearm<br />
+total_accel_forearm<br />
+gyros_forearm_x<br />
+gyros_forearm_y<br />
+gyros_forearm_z<br />
+accel_forearm_x<br />
+accel_forearm_y<br />
+accel_forearm_z<br />
+magnet_forearm_x<br />
+magnet_forearm_y<br />
+magnet_forearm_z</p>
+</div>
 
 
 </div>
