@@ -40,26 +40,32 @@ har.test <- har.test[,c(cols,"problem_id")]
 rownames(har.test) <- NULL
 ```
 
-```{r parallel, cache=TRUE}
+```{r model, cache=TRUE}
 # Code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
 require(doParallel)
 data(iris)
 set.seed(4747)
 num_repeats <- 1
-k <- 10
-mtry <- ncol(har.train) - 2
+k <- 10 # Number of folds for k-fold cross-validation
+mtry <- ncol(har.train) - 2 # df when response is removed
+
+# generate the seeds for the cross-validation for reproducibility
 seeds <- vector(mode="list", length=(num_repeats * k) + 1)
 for(i in 1:10) seeds[[i]] <- sample.int(1000, mtry)
-
 seeds[[11]] <- sample.int(1000, 1)
 
-myControl <- trainControl(method="cv", seeds=seeds, index=createFolds(har.train$classe, k=k))
+# Define k-fold cross-validation controls for 10 folds to estimate out-of-bag error
+myControl <- trainControl(method="oob", seeds=seeds, index=createFolds(har.train$classe, k=k))
 
-cl <- makeCluster(detectCores() - 1)
+# Train our model using random forest. Perform training in 4 parallel threads for increased speed
+cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 fit <- train(classe ~ ., har.train, method="rf", trControl=myControl)
-# rf.fit <- rfcv(har.train[,-which(names(har.train)=="class")], har.train[,"classe"], cv.fold=k, trControl(myControl))
 stopCluster(cl)
+```
+
+```{r show_cv}
+fit$finalModel
 ```
 
 ```{r predict}

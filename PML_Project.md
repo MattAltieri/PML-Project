@@ -28,20 +28,45 @@ require(doParallel)
 data(iris)
 set.seed(4747)
 num_repeats <- 1
-k <- 10
-mtry <- ncol(har.train) - 2
+k <- 10 # Number of folds for k-fold cross-validation
+mtry <- ncol(har.train) - 2 # df when response is removed
+
+# generate the seeds for the cross-validation for reproducibility
 seeds <- vector(mode="list", length=(num_repeats * k) + 1)
 for(i in 1:10) seeds[[i]] <- sample.int(1000, mtry)
-
 seeds[[11]] <- sample.int(1000, 1)
 
-myControl <- trainControl(method="cv", seeds=seeds, index=createFolds(har.train$classe, k=k))
+# Define k-fold cross-validation controls for 10 folds to estimate out-of-bag error
+myControl <- trainControl(method="oob", seeds=seeds, index=createFolds(har.train$classe, k=k))
 
-cl <- makeCluster(detectCores() - 1)
+# Train our model using random forest. Perform training in 4 parallel threads for increased speed
+cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 fit <- train(classe ~ ., har.train, method="rf", trControl=myControl)
-# rf.fit <- rfcv(har.train[,-which(names(har.train)=="class")], har.train[,"classe"], cv.fold=k, trControl(myControl))
 stopCluster(cl)
+```
+
+
+```r
+fit$finalModel
+```
+
+```
+
+Call:
+ randomForest(x = x, y = y, mtry = param$mtry) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 27
+
+        OOB estimate of  error rate: 0.43%
+Confusion matrix:
+     A    B    C    D    E  class.error
+A 5466    3    1    0    1 0.0009139097
+B   19 3694    5    0    0 0.0064550834
+C    0   11 3330   11    0 0.0065632458
+D    0    0   20 3125    2 0.0069907849
+E    0    1    5    4 3518 0.0028344671
 ```
 
 

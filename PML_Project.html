@@ -90,20 +90,38 @@ require(doParallel)
 data(iris)
 set.seed(4747)
 num_repeats &lt;- 1
-k &lt;- 10
-mtry &lt;- ncol(har.train) - 2
+k &lt;- 10 # Number of folds for k-fold cross-validation
+mtry &lt;- ncol(har.train) - 2 # df when response is removed
+
+# generate the seeds for the cross-validation for reproducibility
 seeds &lt;- vector(mode=&quot;list&quot;, length=(num_repeats * k) + 1)
 for(i in 1:10) seeds[[i]] &lt;- sample.int(1000, mtry)
-
 seeds[[11]] &lt;- sample.int(1000, 1)
 
-myControl &lt;- trainControl(method=&quot;cv&quot;, seeds=seeds, index=createFolds(har.train$classe, k=k))
+# Define k-fold cross-validation controls for 10 folds to estimate out-of-bag error
+myControl &lt;- trainControl(method=&quot;oob&quot;, seeds=seeds, index=createFolds(har.train$classe, k=k))
 
-cl &lt;- makeCluster(detectCores() - 1)
+# Train our model using random forest. Perform training in 4 parallel threads for increased speed
+cl &lt;- makeCluster(detectCores())
 registerDoParallel(cl)
 fit &lt;- train(classe ~ ., har.train, method=&quot;rf&quot;, trControl=myControl)
-# rf.fit &lt;- rfcv(har.train[,-which(names(har.train)==&quot;class&quot;)], har.train[,&quot;classe&quot;], cv.fold=k, trControl(myControl))
 stopCluster(cl)</code></pre>
+<pre class="r"><code>fit$finalModel</code></pre>
+<pre><code>
+Call:
+ randomForest(x = x, y = y, mtry = param$mtry) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 27
+
+        OOB estimate of  error rate: 0.43%
+Confusion matrix:
+     A    B    C    D    E  class.error
+A 5466    3    1    0    1 0.0009139097
+B   19 3694    5    0    0 0.0064550834
+C    0   11 3330   11    0 0.0065632458
+D    0    0   20 3125    2 0.0069907849
+E    0    1    5    4 3518 0.0028344671</code></pre>
 <pre class="r"><code>har.test$pred.classe &lt;- predict(fit, har.test)
 
 pml_write_files &lt;- function(x) {
