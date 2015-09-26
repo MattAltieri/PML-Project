@@ -70,7 +70,7 @@ fit <- train(classe ~ ., har.train, method="rf", trControl=myControl)
 stopCluster(cl)
 ```
 
-```{r show cv, cache=FALSE}
+```{r show cv, cache=TRUE}
 fit$finalModel
 ```
 
