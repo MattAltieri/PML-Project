@@ -72,26 +72,120 @@ img {
 </div>
 
 
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>Our goal with this analysis is to determine if we can detect the quality of a human activity – whether an exercise motion was performed correctly or incorrectly.</p>
+<p>To do this, we have split our data into training and test sets of the following size.</p>
 <pre class="r"><code># training data
 har.train &lt;- read.csv(&quot;data/pml-training.csv&quot;, header=T)
-# select only the measurement records, not the aggregates
-har.train &lt;- har.train[which(har.train$new_window==&quot;no&quot;),]
+
+# test data
+har.test &lt;- read.csv(&quot;data/pml-testing.csv&quot;, header=T)</code></pre>
+<!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
+<!-- Sat Sep 26 13:11:29 2015 -->
+<table border="1">
+<caption align="bottom">
+Training &amp; Test Sets
+</caption>
+<tr>
+<th>
+</th>
+<th>
+Observations
+</th>
+<th>
+Variables
+</th>
+</tr>
+<tr>
+<td align="right">
+Training
+</td>
+<td align="right">
+19622
+</td>
+<td align="right">
+160
+</td>
+</tr>
+<tr>
+<td align="right">
+Testing
+</td>
+<td align="right">
+20
+</td>
+<td align="right">
+160
+</td>
+</tr>
+</table>
+<p>The data we will use was originally sourced from <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a><span class="math inline">\(^1\)</span></p>
+</div>
+<div id="data-exploration" class="section level2">
+<h2>Data Exploration</h2>
+<p>In the data we will use, both individual measurements (<code>new_window=&quot;no&quot;</code>) and aggregated measurements over time (<code>new_window=&quot;yes&quot;</code>) are available.</p>
+<!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
+<!-- Sat Sep 26 13:11:29 2015 -->
+<table border="1">
+<caption align="bottom">
+Frequency &amp; types of records
+</caption>
+<tr>
+<th>
+new_window
+</th>
+<th>
+count
+</th>
+</tr>
+<tr>
+<td>
+no
+</td>
+<td align="right">
+19216
+</td>
+</tr>
+<tr>
+<td>
+yes
+</td>
+<td align="right">
+406
+</td>
+</tr>
+</table>
+<p>Each training record is assigned a <code>classe</code> of A through E. We wish to use the quantitative training data to predict these values in the test data, for individual measurements (<code>new_window=&quot;no&quot;</code>) only, so we will filter the training data to only those types of records.</p>
+<pre class="r"><code># select only the measurement records, not the aggregates
+har.train &lt;- har.train[which(har.train$new_window==&quot;no&quot;),]</code></pre>
+<p>Many of the variables are only used to contain aggregate measurements (<code>min_roll_belt</code>, <code>max_yaw_belt</code>), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.</p>
+<pre class="r"><code># training data
 # select only the quantitative features for non-aggregate obs
 har.train &lt;- har.train[,c(features,&quot;classe&quot;)]
 rownames(har.train) &lt;- NULL
 
 # test data
-har.test &lt;- read.csv(&quot;data/pml-testing.csv&quot;, header=T)
 har.test &lt;- har.test[,c(features,&quot;problem_id&quot;)]
 rownames(har.test) &lt;- NULL</code></pre>
-<pre class="r"><code># Code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
+<p>The contents of the <code>features</code> vector can be found in the figure <em>Variables evaluated for model features</em> in the <strong>Appendix</strong>.</p>
+</div>
+<div id="random-forest-model" class="section level2">
+<h2>Random Forest Model</h2>
+<p>Our goal is to categorize a lot of numerical data about human movement</p>
+<ol style="list-style-type: decimal">
+<li>Into 5 broad categories</li>
+<li>For the general case (not user or time specific)</li>
+</ol>
+<p>To do this, we will model a random forest in order to fit to a high-degree of accuracy. Because of the risk of overfitting, we will use k-fold cross-validation to minimize the chance of overfitting. This will also allow us to estimate the out-of-bag error rate.</p>
+<pre class="r"><code># Parallel processing code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
 require(doParallel)
 set.seed(4747)
 num_repeats &lt;- 1
 k &lt;- 10 # Number of folds for k-fold cross-validation
-mtry &lt;- ncol(har.train) - 2 # df when response is removed
+mtry &lt;- ncol(har.train) - 2 # num of candidate features - 1
 
-# generate the seeds for the cross-validation for reproducibility
+# generate the seeds for the random folds for reproducibility
 seeds &lt;- vector(mode=&quot;list&quot;, length=(num_repeats * k) + 1)
 for(i in 1:10) seeds[[i]] &lt;- sample.int(1000, mtry)
 seeds[[11]] &lt;- sample.int(1000, 1)
@@ -104,7 +198,9 @@ cl &lt;- makeCluster(detectCores())
 registerDoParallel(cl)
 fit &lt;- train(classe ~ ., har.train, method=&quot;rf&quot;, trControl=myControl)
 stopCluster(cl)</code></pre>
-<pre class="r"><code>fit$finalModel</code></pre>
+</div>
+<div id="model-results" class="section level2">
+<h2>Model Results</h2>
 <pre><code>
 Call:
  randomForest(x = x, y = y, mtry = param$mtry) 
@@ -131,63 +227,285 @@ pml_write_files &lt;- function(x) {
 }
 
 pml_write_files(as.character(har.test$pred.classe))</code></pre>
+</div>
 <div id="appendix" class="section level2">
 <h2>Appendix</h2>
-<pre class="r"><code>kable(data.frame(features=features))</code></pre>
+<!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
+<!-- Sat Sep 26 13:14:43 2015 -->
+<table border="1">
+<caption align="top">
+Variables evaluated for model features
+</caption>
+<tr>
+<th>
+features
+</th>
+</tr>
+<tr>
+<td>
+roll_belt
+</td>
+</tr>
+<tr>
+<td>
+pitch_belt
+</td>
+</tr>
+<tr>
+<td>
+yaw_belt
+</td>
+</tr>
+<tr>
+<td>
+total_accel_belt
+</td>
+</tr>
+<tr>
+<td>
+gyros_belt_x
+</td>
+</tr>
+<tr>
+<td>
+gyros_belt_y
+</td>
+</tr>
+<tr>
+<td>
+gyros_belt_z
+</td>
+</tr>
+<tr>
+<td>
+accel_belt_x
+</td>
+</tr>
+<tr>
+<td>
+accel_belt_y
+</td>
+</tr>
+<tr>
+<td>
+accel_belt_z
+</td>
+</tr>
+<tr>
+<td>
+magnet_belt_x
+</td>
+</tr>
+<tr>
+<td>
+magnet_belt_y
+</td>
+</tr>
+<tr>
+<td>
+magnet_belt_z
+</td>
+</tr>
+<tr>
+<td>
+roll_arm
+</td>
+</tr>
+<tr>
+<td>
+pitch_arm
+</td>
+</tr>
+<tr>
+<td>
+yaw_arm
+</td>
+</tr>
+<tr>
+<td>
+total_accel_arm
+</td>
+</tr>
+<tr>
+<td>
+gyros_arm_x
+</td>
+</tr>
+<tr>
+<td>
+gyros_arm_y
+</td>
+</tr>
+<tr>
+<td>
+gyros_arm_z
+</td>
+</tr>
+<tr>
+<td>
+accel_arm_x
+</td>
+</tr>
+<tr>
+<td>
+accel_arm_y
+</td>
+</tr>
+<tr>
+<td>
+accel_arm_z
+</td>
+</tr>
+<tr>
+<td>
+magnet_arm_x
+</td>
+</tr>
+<tr>
+<td>
+magnet_arm_y
+</td>
+</tr>
+<tr>
+<td>
+magnet_arm_z
+</td>
+</tr>
+<tr>
+<td>
+roll_dumbbell
+</td>
+</tr>
+<tr>
+<td>
+pitch_dumbbell
+</td>
+</tr>
+<tr>
+<td>
+yaw_dumbbell
+</td>
+</tr>
+<tr>
+<td>
+total_accel_dumbbell
+</td>
+</tr>
+<tr>
+<td>
+gyros_dumbbell_x
+</td>
+</tr>
+<tr>
+<td>
+gyros_dumbbell_y
+</td>
+</tr>
+<tr>
+<td>
+gyros_dumbbell_z
+</td>
+</tr>
+<tr>
+<td>
+accel_dumbbell_x
+</td>
+</tr>
+<tr>
+<td>
+accel_dumbbell_y
+</td>
+</tr>
+<tr>
+<td>
+accel_dumbbell_z
+</td>
+</tr>
+<tr>
+<td>
+magnet_dumbbell_x
+</td>
+</tr>
+<tr>
+<td>
+magnet_dumbbell_y
+</td>
+</tr>
+<tr>
+<td>
+magnet_dumbbell_z
+</td>
+</tr>
+<tr>
+<td>
+roll_forearm
+</td>
+</tr>
+<tr>
+<td>
+pitch_forearm
+</td>
+</tr>
+<tr>
+<td>
+yaw_forearm
+</td>
+</tr>
+<tr>
+<td>
+total_accel_forearm
+</td>
+</tr>
+<tr>
+<td>
+gyros_forearm_x
+</td>
+</tr>
+<tr>
+<td>
+gyros_forearm_y
+</td>
+</tr>
+<tr>
+<td>
+gyros_forearm_z
+</td>
+</tr>
+<tr>
+<td>
+accel_forearm_x
+</td>
+</tr>
+<tr>
+<td>
+accel_forearm_y
+</td>
+</tr>
+<tr>
+<td>
+accel_forearm_z
+</td>
+</tr>
+<tr>
+<td>
+magnet_forearm_x
+</td>
+</tr>
+<tr>
+<td>
+magnet_forearm_y
+</td>
+</tr>
+<tr>
+<td>
+magnet_forearm_z
+</td>
+</tr>
+</table>
 </div>
-<div id="features" class="section level2">
-<h2>features</h2>
-<p>roll_belt<br />
-pitch_belt<br />
-yaw_belt<br />
-total_accel_belt<br />
-gyros_belt_x<br />
-gyros_belt_y<br />
-gyros_belt_z<br />
-accel_belt_x<br />
-accel_belt_y<br />
-accel_belt_z<br />
-magnet_belt_x<br />
-magnet_belt_y<br />
-magnet_belt_z<br />
-roll_arm<br />
-pitch_arm<br />
-yaw_arm<br />
-total_accel_arm<br />
-gyros_arm_x<br />
-gyros_arm_y<br />
-gyros_arm_z<br />
-accel_arm_x<br />
-accel_arm_y<br />
-accel_arm_z<br />
-magnet_arm_x<br />
-magnet_arm_y<br />
-magnet_arm_z<br />
-roll_dumbbell<br />
-pitch_dumbbell<br />
-yaw_dumbbell<br />
-total_accel_dumbbell gyros_dumbbell_x<br />
-gyros_dumbbell_y<br />
-gyros_dumbbell_z<br />
-accel_dumbbell_x<br />
-accel_dumbbell_y<br />
-accel_dumbbell_z<br />
-magnet_dumbbell_x<br />
-magnet_dumbbell_y<br />
-magnet_dumbbell_z<br />
-roll_forearm<br />
-pitch_forearm<br />
-yaw_forearm<br />
-total_accel_forearm<br />
-gyros_forearm_x<br />
-gyros_forearm_y<br />
-gyros_forearm_z<br />
-accel_forearm_x<br />
-accel_forearm_y<br />
-accel_forearm_z<br />
-magnet_forearm_x<br />
-magnet_forearm_y<br />
-magnet_forearm_z</p>
+<div id="citations" class="section level2">
+<h2>Citations</h2>
+<p>1: <em>Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human ’13) . Stuttgart, Germany: ACM SIGCHI, 2013.</em></p>
 </div>
 
 
