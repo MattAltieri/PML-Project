@@ -4,6 +4,10 @@ author: "Matt Altieri"
 output:
     html_document:
         keep_md: true
+        pandoc_args: [
+            "+RTS", "-K64m",
+            "-RTS"
+            ]
 ---
 
 ```{r setup, cache=FALSE, echo=FALSE, message=F, warning=F, tidy=FALSE}
@@ -66,7 +70,7 @@ fit <- train(classe ~ ., har.train, method="rf", trControl=myControl)
 stopCluster(cl)
 ```
 
-```{r show cv}
+```{r show cv, cache=FALSE}
 fit$finalModel
 ```
 
@@ -83,8 +87,6 @@ pml_write_files <- function(x) {
 
 pml_write_files(as.character(har.test$pred.classe))
 ```
-
-\pagebreak
 
 ## Appendix
 
