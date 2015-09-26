@@ -1,5 +1,6 @@
 ---
 title: "PML Project"
+author: "Matt Altieri"
 output:
     html_document:
         keep_md: true
@@ -22,28 +23,29 @@ knit_hooks$set(inline=function(x) {
 knit_hooks$set(plot=knitr:::hook_plot_html)
 ```
 
-```{r load}
+```{r features, echo=FALSE}
 # Quantitative features for non-aggregate observations
-cols <- c("roll_belt","pitch_belt","yaw_belt","total_accel_belt","gyros_belt_x","gyros_belt_y","gyros_belt_z","accel_belt_x","accel_belt_y","accel_belt_z","magnet_belt_x","magnet_belt_y","magnet_belt_z","roll_arm","pitch_arm","yaw_arm","total_accel_arm","gyros_arm_x","gyros_arm_y","gyros_arm_z","accel_arm_x","accel_arm_y","accel_arm_z","magnet_arm_x","magnet_arm_y","magnet_arm_z","roll_dumbbell","pitch_dumbbell","yaw_dumbbell","total_accel_dumbbell","gyros_dumbbell_x","gyros_dumbbell_y","gyros_dumbbell_z","accel_dumbbell_x","accel_dumbbell_y","accel_dumbbell_z","magnet_dumbbell_x","magnet_dumbbell_y","magnet_dumbbell_z","roll_forearm","pitch_forearm","yaw_forearm","total_accel_forearm","gyros_forearm_x","gyros_forearm_y","gyros_forearm_z","accel_forearm_x","accel_forearm_y","accel_forearm_z","magnet_forearm_x","magnet_forearm_y","magnet_forearm_z")
+features <- c("roll_belt","pitch_belt","yaw_belt","total_accel_belt","gyros_belt_x","gyros_belt_y","gyros_belt_z","accel_belt_x","accel_belt_y","accel_belt_z","magnet_belt_x","magnet_belt_y","magnet_belt_z","roll_arm","pitch_arm","yaw_arm","total_accel_arm","gyros_arm_x","gyros_arm_y","gyros_arm_z","accel_arm_x","accel_arm_y","accel_arm_z","magnet_arm_x","magnet_arm_y","magnet_arm_z","roll_dumbbell","pitch_dumbbell","yaw_dumbbell","total_accel_dumbbell","gyros_dumbbell_x","gyros_dumbbell_y","gyros_dumbbell_z","accel_dumbbell_x","accel_dumbbell_y","accel_dumbbell_z","magnet_dumbbell_x","magnet_dumbbell_y","magnet_dumbbell_z","roll_forearm","pitch_forearm","yaw_forearm","total_accel_forearm","gyros_forearm_x","gyros_forearm_y","gyros_forearm_z","accel_forearm_x","accel_forearm_y","accel_forearm_z","magnet_forearm_x","magnet_forearm_y","magnet_forearm_z")
+```
 
+```{r load}
 # training data
 har.train <- read.csv("data/pml-training.csv", header=T)
 # select only the measurement records, not the aggregates
 har.train <- har.train[which(har.train$new_window=="no"),]
 # select only the quantitative features for non-aggregate obs
-har.train <- har.train[,c(cols,"classe")]
+har.train <- har.train[,c(features,"classe")]
 rownames(har.train) <- NULL
 
-#training data
+# test data
 har.test <- read.csv("data/pml-testing.csv", header=T)
-har.test <- har.test[,c(cols,"problem_id")]
+har.test <- har.test[,c(features,"problem_id")]
 rownames(har.test) <- NULL
 ```
 
 ```{r model, cache=TRUE}
 # Code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
 require(doParallel)
-data(iris)
 set.seed(4747)
 num_repeats <- 1
 k <- 10 # Number of folds for k-fold cross-validation
@@ -64,7 +66,7 @@ fit <- train(classe ~ ., har.train, method="rf", trControl=myControl)
 stopCluster(cl)
 ```
 
-```{r show_cv}
+```{r show cv}
 fit$finalModel
 ```
 
@@ -80,4 +82,12 @@ pml_write_files <- function(x) {
 }
 
 pml_write_files(as.character(har.test$pred.classe))
+```
+
+\pagebreak
+
+## Appendix
+
+```{r show features, fig.cap="Non-aggregate quantitative variables used as model features"}
+kable(data.frame(features=features))
 ```

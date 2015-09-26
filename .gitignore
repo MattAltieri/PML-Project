@@ -14,3 +14,5 @@ vignettes/*.pdf
 
 data/
 */data/
+.cache/
+*/.cache/
