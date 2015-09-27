@@ -135,7 +135,7 @@ stopCluster(cl)
 fit$finalModel
 ```
 
-Our estimated out-of-bag error rate for this model is 0.41%. Our expectation is that our cross-validation strategy has minimized the risk of overfitting, so we can use this model to predict the values of `classe` in our test dataset.
+Our estimated out-of-bag error rate for this model is **0.41%**. Our expectation is that our cross-validation strategy has minimized the risk of overfitting, so we can use this model to predict the values of `classe` in our test dataset.
 
 ```{r predict}
 har.test$pred.classe <- predict(fit, har.test)
