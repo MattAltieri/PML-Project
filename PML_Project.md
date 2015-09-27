@@ -19,7 +19,7 @@ har.test <- read.csv("data/pml-testing.csv", header=T)
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 12:20:28 2015 -->
+<!-- Sun Sep 27 12:22:12 2015 -->
 <table border=1>
 <tr> <th>  </th> <th> Observations </th> <th> Variables </th>  </tr>
   <tr> <td align="center"> Training </td> <td align="center"> 19622 </td> <td align="center"> 160 </td> </tr>
@@ -35,7 +35,7 @@ The data we will use was originally sourced from [http://groupware.les.inf.puc-r
 In the data we will use, both individual measurements (`new_window="no"`) and aggregated measurements over time (`new_window="yes"`) are available.
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 12:20:28 2015 -->
+<!-- Sun Sep 27 12:22:12 2015 -->
 <table border=1>
 <tr> <th> new_window </th> <th> count </th>  </tr>
   <tr> <td align="center"> no </td> <td align="center"> 19216 </td> </tr>
@@ -124,7 +124,7 @@ D    0    0   37 3109    1 0.0120749921
 E    0    0    0    4 3524 0.0011337868
 ```
 
-Our estimated out-of-bag error rate for this model is 0.41%. Our expectation is that our cross-validation strategy has minimized the risk of overfitting, so we can use this model to predict the values of `classe` in our test dataset.
+Our estimated out-of-bag error rate for this model is **0.41%**. Our expectation is that our cross-validation strategy has minimized the risk of overfitting, so we can use this model to predict the values of `classe` in our test dataset.
 
 
 ```r
@@ -142,7 +142,7 @@ pml_write_files(as.character(har.test$pred.classe))
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 12:20:29 2015 -->
+<!-- Sun Sep 27 12:22:13 2015 -->
 <table border=1>
 <caption align="top"> Prediction Results </caption>
 <tr> <th> problem_id </th> <th> pred.classe </th>  </tr>
@@ -173,7 +173,7 @@ pml_write_files(as.character(har.test$pred.classe))
 ### Additional Figures
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 12:20:29 2015 -->
+<!-- Sun Sep 27 12:22:13 2015 -->
 <table border=1>
 <caption align="top"> Variables evaluated for model features </caption>
 <tr> <th> features </th>  </tr>
