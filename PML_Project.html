@@ -82,7 +82,7 @@ har.train &lt;- read.csv(&quot;data/pml-training.csv&quot;, header=T)
 # test data
 har.test &lt;- read.csv(&quot;data/pml-testing.csv&quot;, header=T)</code></pre>
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:55 2015 -->
+<!-- Sun Sep 27 12:20:28 2015 -->
 <table border="1">
 <tr>
 <th>
@@ -124,7 +124,7 @@ Testing
 <h2>Data Exploration</h2>
 <p>In the data we will use, both individual measurements (<code>new_window=&quot;no&quot;</code>) and aggregated measurements over time (<code>new_window=&quot;yes&quot;</code>) are available.</p>
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:55 2015 -->
+<!-- Sun Sep 27 12:20:28 2015 -->
 <table border="1">
 <tr>
 <th>
@@ -155,7 +155,7 @@ yes
 <p>Each training record is assigned a <code>classe</code> of A through E. We wish to use the quantitative training data to predict these values in the test data, for individual measurements (<code>new_window=&quot;no&quot;</code>) only, so we will filter the training data to only those types of records.</p>
 <pre class="r"><code># select only the measurement records, not the aggregates
 har.train &lt;- har.train[which(har.train$new_window==&quot;no&quot;),]</code></pre>
-<p>Many of the variables are only used to contain aggregate measurements (<code>min_roll_belt</code>, <code>max_yaw_belt</code>), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.</p>
+<p>Many of the variables are only used to contain aggregate measurements (<code>min_roll_belt</code>, <code>max_yaw_belt</code>, etc.), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.</p>
 <pre class="r"><code># training data
 # select only the quantitative features for non-aggregate obs
 har.train &lt;- har.train[,c(features,&quot;classe&quot;)]
@@ -173,7 +173,7 @@ rownames(har.test) &lt;- NULL</code></pre>
 <li>Into 5 broad categories</li>
 <li>For the general case (not user or time specific)</li>
 </ol>
-<p>To do this, we will model a random forest in order to fit to a high-degree of accuracy. Because of the risk of overfitting, we will use k-fold cross-validation to minimize the chance of overfitting. This will also allow us to estimate the out-of-bag error rate.</p>
+<p>To do this, we will model a random forest in order to fit to a high-degree of accuracy. We will use k-fold cross-validation to minimize the risk of overfitting. This will also allow us to estimate the out-of-bag error rate.</p>
 <pre class="r"><code># Parallel processing code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
 require(doParallel)
 set.seed(4747)
@@ -225,7 +225,7 @@ pml_write_files &lt;- function(x) {
 
 pml_write_files(as.character(har.test$pred.classe))</code></pre>
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:56 2015 -->
+<!-- Sun Sep 27 12:20:29 2015 -->
 <table border="1">
 <caption align="top">
 Prediction Results
@@ -405,7 +405,7 @@ B
 <div id="additional-figures" class="section level3">
 <h3>Additional Figures</h3>
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:56 2015 -->
+<!-- Sun Sep 27 12:20:29 2015 -->
 <table border="1">
 <caption align="top">
 Variables evaluated for model features
