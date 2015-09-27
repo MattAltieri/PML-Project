@@ -19,7 +19,7 @@ har.test <- read.csv("data/pml-testing.csv", header=T)
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:55 2015 -->
+<!-- Sun Sep 27 12:20:28 2015 -->
 <table border=1>
 <tr> <th>  </th> <th> Observations </th> <th> Variables </th>  </tr>
   <tr> <td align="center"> Training </td> <td align="center"> 19622 </td> <td align="center"> 160 </td> </tr>
@@ -35,7 +35,7 @@ The data we will use was originally sourced from [http://groupware.les.inf.puc-r
 In the data we will use, both individual measurements (`new_window="no"`) and aggregated measurements over time (`new_window="yes"`) are available.
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:55 2015 -->
+<!-- Sun Sep 27 12:20:28 2015 -->
 <table border=1>
 <tr> <th> new_window </th> <th> count </th>  </tr>
   <tr> <td align="center"> no </td> <td align="center"> 19216 </td> </tr>
@@ -52,7 +52,7 @@ Each training record is assigned a `classe` of A through E. We wish to use the q
 har.train <- har.train[which(har.train$new_window=="no"),]
 ```
 
-Many of the variables are only used to contain aggregate measurements (`min_roll_belt`, `max_yaw_belt`), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.
+Many of the variables are only used to contain aggregate measurements (`min_roll_belt`, `max_yaw_belt`, etc.), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.
 
 
 
@@ -77,7 +77,7 @@ Our goal is to categorize a lot of numerical data about human movement
 1. Into 5 broad categories
 2. For the general case (not user or time specific)
 
-To do this, we will model a random forest in order to fit to a high-degree of accuracy. Because of the risk of overfitting, we will use k-fold cross-validation to minimize the chance of overfitting. This will also allow us to estimate the out-of-bag error rate.
+To do this, we will model a random forest in order to fit to a high-degree of accuracy. We will use k-fold cross-validation to minimize the risk of overfitting. This will also allow us to estimate the out-of-bag error rate.
 
 
 ```r
@@ -142,7 +142,7 @@ pml_write_files(as.character(har.test$pred.classe))
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:56 2015 -->
+<!-- Sun Sep 27 12:20:29 2015 -->
 <table border=1>
 <caption align="top"> Prediction Results </caption>
 <tr> <th> problem_id </th> <th> pred.classe </th>  </tr>
@@ -173,7 +173,7 @@ pml_write_files(as.character(har.test$pred.classe))
 ### Additional Figures
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Sun Sep 27 11:14:56 2015 -->
+<!-- Sun Sep 27 12:20:29 2015 -->
 <table border=1>
 <caption align="top"> Variables evaluated for model features </caption>
 <tr> <th> features </th>  </tr>

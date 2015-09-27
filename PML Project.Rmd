@@ -77,7 +77,7 @@ Each training record is assigned a `classe` of A through E. We wish to use the q
 har.train <- har.train[which(har.train$new_window=="no"),]
 ```
 
-Many of the variables are only used to contain aggregate measurements (`min_roll_belt`, `max_yaw_belt`), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.
+Many of the variables are only used to contain aggregate measurements (`min_roll_belt`, `max_yaw_belt`, etc.), so we will remove them from our list of feature candidates. Additionally, since our goal is to detect the quality of the exercise in the general case, information about the user, as well as timestamps and measurement windows will be removed.
 
 ```{r features, echo=FALSE}
 # Quantitative features for non-aggregate observations
@@ -104,7 +104,7 @@ Our goal is to categorize a lot of numerical data about human movement
 1. Into 5 broad categories
 2. For the general case (not user or time specific)
 
-To do this, we will model a random forest in order to fit to a high-degree of accuracy. Because of the risk of overfitting, we will use k-fold cross-validation to minimize the chance of overfitting. This will also allow us to estimate the out-of-bag error rate.
+To do this, we will model a random forest in order to fit to a high-degree of accuracy. We will use k-fold cross-validation to minimize the risk of overfitting. This will also allow us to estimate the out-of-bag error rate.
 
 ```{r model, cache=TRUE}
 # Parallel processing code adapted from https://stackoverflow.com/questions/13403427/fully-reproducible-parallel-models-using-caret
