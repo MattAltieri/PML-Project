@@ -13,8 +13,8 @@ output:
 ```{r setup, cache=FALSE, echo=FALSE, message=F, warning=F, tidy=FALSE}
 require(knitr)
 require(caret)
-require(xtable)
 require(dplyr)
+require(xtable)
 options(width=100)
 opts_chunk$set(message=F, error=F, warning=F, comment=NA, fig.align='center', dpi=100, tidy=F, cache.path='.cache/', fig.path='fig/')
 
@@ -48,9 +48,11 @@ har.dims <- as.data.frame(rbind(dim(har.train),
                                 dim(har.test)))
 rownames(har.dims) <- c("Training","Testing")
 colnames(har.dims) <- c("Observations","Variables")
-print(xtable(har.dims, caption="Training & Test Sets"))
+ctr <- rep("c", 3)
+print(xtable(har.dims, align=ctr))
 ```
 
+<br />
 
 The data we will use was originally sourced from [http://groupware.les.inf.puc-rio.br/har](http://groupware.les.inf.puc-rio.br/har)$^1$
 
@@ -62,9 +64,11 @@ In the data we will use, both individual measurements (`new_window="no"`) and ag
 har.train.sum <- har.train %>%
     group_by(new_window) %>%
     summarize(count=n())
-print(xtable(har.train.sum, caption="Frequency & types of records"),
-      include.rownames=F)
+ctr <- rep("c", 3)
+print(xtable(har.train.sum, align=ctr), include.rownames=F)
 ```
+
+<br />
 
 Each training record is assigned a `classe` of A through E. We wish to use the quantitative training data to predict these values in the test data, for individual measurements (`new_window="no"`) only, so we will filter the training data to only those types of records.
 
@@ -131,7 +135,7 @@ stopCluster(cl)
 fit$finalModel
 ```
 
-
+Our estimated out-of-bag error rate for this model is 0.41%. Our expectation is that our cross-validation strategy has minimized the risk of overfitting, so we can use this model to predict the values of `classe` in our test dataset.
 
 ```{r predict}
 har.test$pred.classe <- predict(fit, har.test)
@@ -147,14 +151,24 @@ pml_write_files <- function(x) {
 pml_write_files(as.character(har.test$pred.classe))
 ```
 
+```{r show predictions, echo=FALSE, results='asis'}
+ctr <- rep("c", 3)
+print(xtable(har.test[,c("problem_id","pred.classe")],
+             caption="Prediction Results", align=ctr),
+      type="html", caption.placement="top", include.rownames=F)
+```
+
 ## Appendix
 
+### Additional Figures
+
 ```{r show features, echo=FALSE, results='asis'}
+ctr <- rep("c", 2)
 print(xtable(data.frame(features=features), caption=
-        "Variables evaluated for model features"),
+        "Variables evaluated for model features", align=ctr),
       caption.placement="top", include.rownames=F)
 ```
 
-## Citations
+### Citations
 
 1: _Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013._
